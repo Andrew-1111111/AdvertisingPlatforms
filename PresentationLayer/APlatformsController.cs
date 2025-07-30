@@ -1,10 +1,9 @@
 ﻿using AdvertisingPlatforms.BusinessLogic;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Text;
 
-namespace AdvertisingPlatforms.Controllers
+namespace AdvertisingPlatforms.Presentation
 {
     [ApiController]
     [Route("Api/[controller]")]
@@ -37,7 +36,7 @@ namespace AdvertisingPlatforms.Controllers
         /// Отображение формы Index.html для загрузки файла в словарь
         /// </summary>
         /// <remarks>В ТЗ данный метод не заявлен, оставлен для удобства отладки!</remarks>
-        /// <remarks>URL: Api/APlatforms/*</remarks>
+        /// <remarks>URL: /Api/APlatforms/*</remarks>
         /// <returns>ContentResult представляет собой обертку над HTML кодом (без нее разметка отображается как обычная строка)</returns>
         [HttpGet]
         public async Task<ContentResult> GetIndexAsync()
@@ -65,7 +64,7 @@ namespace AdvertisingPlatforms.Controllers
         /// Возврат всех рекламных площадок (без обработки, as is)
         /// </summary>
         /// <remarks>В ТЗ данный метод не заявлен, оставлен для удобства отладки!</remarks>
-        /// <remarks>URL: Api/APlatforms/GetAllPlatforms/</remarks>
+        /// <remarks>URL: /Api/APlatforms/GetAllPlatforms</remarks>
         /// <returns>IEnumerable возвращает строковое перечисление через yield return, позволяет получать результаты в реальном времени</returns>
         [HttpGet("GetAllPlatforms")]
         public IEnumerable<string> GetAllPlatforms()
@@ -84,7 +83,7 @@ namespace AdvertisingPlatforms.Controllers
         /// <summary>
         /// Метод загрузки рекламных площадок из файла (полностью перезаписывает всю хранимую информацию)
         /// </summary>
-        /// <remarks>URL: Api/APlatforms/Upload/</remarks>
+        /// <remarks>URL: /Api/APlatforms/Upload</remarks>
         /// <returns>ActionResult представляет различные коды состояния HTTP</returns>
         [HttpPost("Upload")]
         [DisableRequestSizeLimit]
@@ -127,7 +126,7 @@ namespace AdvertisingPlatforms.Controllers
         /// <summary>
         /// Метод поиска списка рекламных площадок для заданной локации
         /// </summary>
-        /// <remarks>URL: Api/APlatforms/Search/</remarks>
+        /// <remarks>URL: /Api/APlatforms/Search</remarks>
         /// <param name="location">Параметр запроса, вида: /ru/svrd</param>
         /// <returns>IEnumerable возвращает строковое перечисление через yield return, позволяет получать результаты в реальном времени</returns>
         [HttpGet("Search")]
