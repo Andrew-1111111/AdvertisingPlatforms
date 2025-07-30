@@ -91,7 +91,6 @@ namespace AdvertisingPlatforms.Presentation
         public async Task<IActionResult> PostAsync()
         {
             if (!Request.Form.Files.Any()) return NotFound(new { UploadStatus = "Файл не выбран. Необходимо выбрать файл." });
-            if (_concDictionary == null) return NotFound(new { UploadStatus = "Файл не выбран. Необходимо выбрать файл." });
 
             var success = false;
 
