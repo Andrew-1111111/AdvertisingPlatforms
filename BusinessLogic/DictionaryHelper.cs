@@ -10,7 +10,7 @@ namespace AdvertisingPlatforms.BusinessLogic
         /// <param name="location">Запрос локации</param>
         /// <param name="dict">Словарь</param>
         /// <returns>IEnumerable возвращает строковое перечисление через yield return, позволяет получать результаты в реальном времени</returns>
-        internal static IEnumerable<string> GetPlatforms(string location, ConcurrentDictionary<string, string[]> dict)
+        internal static IEnumerable<string> GetPlatforms(string location, ConcurrentDictionary<string, List<string>> dict)
         {
             var fullLocation = location.ToLower();
 
@@ -37,9 +37,9 @@ namespace AdvertisingPlatforms.BusinessLogic
         /// Заполняет словарь из текста
         /// </summary>
         /// <param name="text">Текст, загруженный из пользовательского файла</param>
-        /// <param name="dict">Словарь</param>
+        /// <param name="dict">Возвращаем временный словарь, ref для явного обозначения возврата по ссылке</param>
         /// <returns>Bool флаг успешности заполнения словаря</returns>
-        internal static bool SetDictionary(string text, ref ConcurrentDictionary<string, string[]> dict)
+        internal static bool SetDictionary(string text, ref ConcurrentDictionary<string, List<string>> dict)
         {
             var success = false;
 
@@ -55,12 +55,11 @@ namespace AdvertisingPlatforms.BusinessLogic
                         if (!string.IsNullOrWhiteSpace(singleLine) && singleLine.Contains(':'))
                         {
                             var key = "";
-                            string[] values = null!;
-                            SplitLines(singleLine, ref key, ref values);
+                            var values = SplitLines(singleLine, ref key);
 
                             if (!string.IsNullOrWhiteSpace(key) 
                                 && values != null 
-                                && values.Length > 0 
+                                && values.Count > 0 
                                 && !dict.TryAdd(key, values))
                                 dict.AddOrUpdate(key, values, (key, oldValues) => values);  // Пытаемся добавить новое значение в dict, 
                                                                                             // если не получилось, обновляем значение этого ключа
@@ -71,12 +70,11 @@ namespace AdvertisingPlatforms.BusinessLogic
                 else // Если файл имеет единственную строку, без символов переноса на новую строку
                 {
                     var key = "";
-                    string[] values = null!;
-                    SplitLines(text, ref key, ref values);
+                    var values = SplitLines(text, ref key);
 
                     if (!string.IsNullOrWhiteSpace(key)
                                 && values != null
-                                && values.Length > 0
+                                && values.Count > 0
                                 && !dict.TryAdd(key, values))
                         dict.AddOrUpdate(key, values, (key, oldValues) => values);  // Пытаемся добавить новое значение в dict, 
                                                                                     // если не получилось, обновляем значение этого ключа
@@ -92,31 +90,34 @@ namespace AdvertisingPlatforms.BusinessLogic
         /// </summary>
         /// <param name="singleLine">Строка</param>
         /// <param name="key">Ключ из словаря</param>
-        /// <param name="values">Массив занчений из словаря</param>
-        private static void SplitLines(string singleLine, ref string key, ref string[] values)
+        /// <returns>Список строк</returns>
+        private static List<string> SplitLines(string singleLine, ref string key)
         {
             try
             {
                 var sourceLine = singleLine.Split(':', StringSplitOptions.RemoveEmptyEntries);
                 key = sourceLine[0].Trim();
-                values = sourceLine[1].Split(',');
-                CleanArray(ref values);
+                var list = sourceLine[1].Split(',').ToList();
+                CleanList(list);
+                return list;
             }
             catch
             {
                 // Тут можно подключить логирование или сделать дополнительную валидацию формата текста
             }
+
+            return [];
         }
 
         /// <summary>
         /// Очищает пробелы в начале и конце каждой строки, переводит строку в нижний регистр
         /// </summary>
-        /// <param name="arr">Массив, из которого берутся строки</param>
-        private static void CleanArray(ref string[] arr)
+        /// <param name="arr">Список, из которого берутся и в который сохраняются строки</param>
+        private static void CleanList(List<string> list)
         {
-            for (int i = 0; i < arr.Length; i++)
+            for (int i = 0; i < list.Count; i++)
             {
-                arr[i] = arr[i].ToLower().Trim();
+                list[i] = list[i].ToLower().Trim();
             }
         }
 

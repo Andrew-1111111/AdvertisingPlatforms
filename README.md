@@ -13,8 +13,8 @@
 
 |Основные методы из ТЗ|Описание метода|
 |:-|:-|
-| https://localhost:7201/Api/APlatforms/Upload | метод загрузки рекламных площадок из файла |
-| https://localhost:7201/api/APlatforms/Search | метод поиска списка рекламных площадок через GET запрос, формат запроса: Search?Location=/ru |
+| https://localhost:7201/Api/APlatforms/UploadFile | метод загрузки рекламных площадок из файла |
+| https://localhost:7201/Api/APlatforms/SearchPlatforms | метод поиска списка рекламных площадок через GET запрос, формат запроса: Search?Location=/ru |
 
 |Вспомогательные методы (для удобства отладки)|Описание метода|
 |:-|:-|

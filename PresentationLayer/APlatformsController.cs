@@ -12,7 +12,8 @@ namespace AdvertisingPlatforms.Presentation
         private static readonly Encoding _encoding = Encoding.UTF8;
         private static string _uploadDirectory = null!;
         private static string _localIndexFile = null!;
-        private static ConcurrentDictionary<string, string[]> _concDictionary = null!;
+        private static readonly Lock _sync = new();
+        private static ConcurrentDictionary<string, List<string>> _concDictionary = null!;
 
         /// <summary>
         /// Конструктор, проверяет пути и инициализирует поля
@@ -29,7 +30,8 @@ namespace AdvertisingPlatforms.Presentation
                 Directory.CreateDirectory(_uploadDirectory);
 
             // Инициализируем словарь
-            _concDictionary ??= new ConcurrentDictionary<string, string[]>();
+            lock (_sync)
+                _concDictionary ??= new ConcurrentDictionary<string, List<string>>();
         }
 
         /// <summary>
@@ -85,35 +87,47 @@ namespace AdvertisingPlatforms.Presentation
         /// </summary>
         /// <remarks>URL: /Api/APlatforms/Upload</remarks>
         /// <returns>ActionResult представляет различные коды состояния HTTP</returns>
-        [HttpPost("Upload")]
+        [HttpPost("UploadFile")]
         [DisableRequestSizeLimit]
         [RequestFormLimits(MultipartBodyLengthLimit = 402653184, ValueLengthLimit = 134217728)] // Общий лимит на загрузку 384 Мб, лимит каждого файла 128 Мб
-        public async Task<IActionResult> PostAsync()
+        public async Task<IActionResult> UploadFileAsync()
         {
             if (!Request.Form.Files.Any()) return NotFound(new { UploadStatus = "Файл не выбран. Необходимо выбрать файл." });
 
             var success = false;
-
-            // Очищаем словарь
-            if (!_concDictionary.IsEmpty) _concDictionary.Clear();
 
             // Перебираем полученные файлы
             if (Request.Form.Files.Count > 0)
             {
                 foreach (var file in Request.Form.Files)
                 {
-                    try
+                    if (FileHelper.FileValidation(file))
                     {
-                        // Считываем файл из IFromFile в MemoryStream
-                        await using var ms = new MemoryStream();
-                        await file.CopyToAsync(ms);
+                        try
+                        {
 
-                        // Заносим данные из полученной строки (в выбранной кодировке) в ConcurrentDictionary
-                        await Task.Run(()=> success = DictionaryHelper.SetDictionary(_encoding.GetString(ms.ToArray()), ref _concDictionary));
-                    }
-                    catch
-                    {
-                        // Тут можно подключить логирование
+                            // Считываем файл из IFromFile в MemoryStream
+                            await using var ms = new MemoryStream();
+                            await file.CopyToAsync(ms);
+
+                            // Создаем временный словарь
+                            var tempDictionary = new ConcurrentDictionary<string, List<string>>();
+
+                            // Заносим данные из полученной строки (в выбранной кодировке)
+                            await Task.Run(() => success = DictionaryHelper.SetDictionary(_encoding.GetString(ms.ToArray()), ref tempDictionary));
+
+                            // Проверяем временный словарь на пустоту
+                            if (tempDictionary == null || tempDictionary.IsEmpty)
+                                continue;
+
+                            // Заменяем значение основного словаря на временный
+                            lock (_sync)
+                                _concDictionary = tempDictionary;
+                        }
+                        catch
+                        {
+                            // Тут можно подключить логирование
+                        }
                     }
                 }
             }
@@ -128,8 +142,8 @@ namespace AdvertisingPlatforms.Presentation
         /// <remarks>URL: /Api/APlatforms/Search</remarks>
         /// <param name="location">Параметр запроса, вида: /ru/svrd</param>
         /// <returns>IEnumerable возвращает строковое перечисление через yield return, позволяет получать результаты в реальном времени</returns>
-        [HttpGet("Search")]
-        public IEnumerable<string> Search([FromQuery] string location)
+        [HttpGet("SearchPlatforms")]
+        public IEnumerable<string> SearchPlatforms([FromQuery] string location)
         {
             if (_concDictionary != null && !_concDictionary.IsEmpty)
             {
@@ -137,6 +151,8 @@ namespace AdvertisingPlatforms.Presentation
                 location.Contains('/') &&
                 location[0] == '/')
                 {
+                    yield return "Count: " + _concDictionary.Count.ToString() + "\r\n";
+
                     foreach (var ap in DictionaryHelper.GetPlatforms(location, _concDictionary))
                         yield return ap;
                 }
