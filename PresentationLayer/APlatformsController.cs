@@ -1,4 +1,5 @@
 ﻿using AdvertisingPlatforms.BusinessLogic;
+using AdvertisingPlatforms.BusinessLogic.File;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Concurrent;
 using System.Text;
@@ -90,7 +91,7 @@ namespace AdvertisingPlatforms.Presentation
         [HttpPost("UploadFile")]
         [DisableRequestSizeLimit]
         [RequestFormLimits(MultipartBodyLengthLimit = 402653184, ValueLengthLimit = 134217728)] // Общий лимит на загрузку 384 Мб, лимит каждого файла 128 Мб
-        public async Task<IActionResult> UploadFileAsync()
+        public async Task<IActionResult> UploadFileAsync(IFileRepository fileRepository)
         {
             if (!Request.Form.Files.Any()) return NotFound(new { UploadStatus = "Файл не выбран. Необходимо выбрать файл." });
 
@@ -101,33 +102,28 @@ namespace AdvertisingPlatforms.Presentation
             {
                 foreach (var file in Request.Form.Files)
                 {
-                    if (FileHelper.FileValidation(file))
+                    try
                     {
-                        try
+                        // Устанавливает и валидирует файл в репозитории
+                        if (await fileRepository.SetFileAsync(file))
                         {
-
-                            // Считываем файл из IFromFile в MemoryStream
-                            await using var ms = new MemoryStream();
-                            await file.CopyToAsync(ms);
-
                             // Создаем временный словарь
                             var tempDictionary = new ConcurrentDictionary<string, List<string>>();
 
                             // Заносим данные из полученной строки (в выбранной кодировке)
-                            await Task.Run(() => success = DictionaryHelper.SetDictionary(_encoding.GetString(ms.ToArray()), ref tempDictionary));
-
-                            // Проверяем временный словарь на пустоту
-                            if (tempDictionary == null || tempDictionary.IsEmpty)
-                                continue;
+                            await Task.Run(() => success = DictionaryHelper.SetDictionary(_encoding.GetString(fileRepository.Data), ref tempDictionary));
 
                             // Заменяем значение основного словаря на временный
                             lock (_sync)
                                 _concDictionary = tempDictionary;
+
+                            // Очищаем свойства файлового репозитория
+                            await fileRepository.ClearAsync();
                         }
-                        catch
-                        {
-                            // Тут можно подключить логирование
-                        }
+                    }
+                    catch
+                    {
+                        // Тут можно подключить логирование
                     }
                 }
             }
@@ -147,12 +143,8 @@ namespace AdvertisingPlatforms.Presentation
         {
             if (_concDictionary != null && !_concDictionary.IsEmpty)
             {
-                if (!string.IsNullOrWhiteSpace(location) &&
-                location.Contains('/') &&
-                location[0] == '/')
+                if (QueryHelper.Validation(location)) // Проводим валидацию строки запроса
                 {
-                    yield return "Count: " + _concDictionary.Count.ToString() + "\r\n";
-
                     foreach (var ap in DictionaryHelper.GetPlatforms(location, _concDictionary))
                         yield return ap;
                 }

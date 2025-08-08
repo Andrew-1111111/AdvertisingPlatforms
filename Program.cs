@@ -1,4 +1,9 @@
-﻿var builder = WebApplication.CreateBuilder(args);
+﻿using AdvertisingPlatforms.BusinessLogic.File;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Регистрация сервисов
+builder.Services.AddRepositories();
 
 // Add services to the container.
 builder.Services.AddControllers();
