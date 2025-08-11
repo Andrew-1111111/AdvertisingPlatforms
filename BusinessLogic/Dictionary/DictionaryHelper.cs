@@ -1,6 +1,6 @@
 ﻿using System.Collections.Concurrent;
 
-namespace AdvertisingPlatforms.BusinessLogic
+namespace AdvertisingPlatforms.BusinessLogic.Dictionary
 {
     internal static class DictionaryHelper
     {

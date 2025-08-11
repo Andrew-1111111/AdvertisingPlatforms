@@ -1,10 +1,12 @@
-﻿using AdvertisingPlatforms.BusinessLogic;
+﻿using AdvertisingPlatforms.BusinessLogic.Dictionary;
 using AdvertisingPlatforms.BusinessLogic.File;
+using AdvertisingPlatforms.BusinessLogic.Query;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Concurrent;
 using System.Text;
 
-namespace AdvertisingPlatforms.Presentation
+namespace AdvertisingPlatforms.PresentationLayer
 {
     [ApiController]
     [Route("Api/[controller]")]
@@ -15,16 +17,20 @@ namespace AdvertisingPlatforms.Presentation
         private static string _localIndexFile = null!;
         private static readonly Lock _sync = new();
         private static ConcurrentDictionary<string, List<string>> _concDictionary = null!;
+        private readonly ILogger<APlatformsController> _logger;
 
         /// <summary>
         /// Конструктор, проверяет пути и инициализирует поля
         /// </summary>
         /// <param name="configuration">Конфигурация приложения (appsettings.json)</param>
-        public APlatformsController(IConfiguration configuration)
+        public APlatformsController(IConfiguration configuration, ILogger<APlatformsController> logger)
         {
             // Устанавливаем пути к файлам
             _uploadDirectory ??= Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configuration.GetValue<string>("FileStorage")!);
             _localIndexFile ??= configuration.GetValue<string>("LocalIndexFile")!;
+
+            // Инициализируем логгер (для каждого экземпляра класса)
+            _logger = logger;
 
             // Если не существует, создаем директорию для загрузки файлов 'FileStorage'
             if (!Directory.Exists(_uploadDirectory))
@@ -42,9 +48,10 @@ namespace AdvertisingPlatforms.Presentation
         /// <remarks>URL: /Api/APlatforms/*</remarks>
         /// <returns>ContentResult представляет собой обертку над HTML кодом (без нее разметка отображается как обычная строка)</returns>
         [HttpGet]
+        [AllowAnonymous]
         public async Task<ContentResult> GetIndexAsync()
         {
-            var contentType = "text/html";
+            const string contentType = "text/html";
             var fullPath = Path.Combine(_uploadDirectory, _localIndexFile);
 
             if (System.IO.File.Exists(fullPath) && new FileInfo(fullPath).Length > 0)
@@ -54,12 +61,10 @@ namespace AdvertisingPlatforms.Presentation
             }
             else
             {
-                return new ContentResult()
-                {
-                    Content = $"Файл '{fullPath}' не найден!",
-                    ContentType = contentType,
-                    StatusCode = 404
-                };
+                var errorText = $"Файл '{fullPath}' не найден!";
+
+                _logger.LogError("{errorText}", errorText);
+                return new ContentResult() { Content = errorText, ContentType = contentType, StatusCode = StatusCodes.Status404NotFound };
             }
         }
 
@@ -70,6 +75,7 @@ namespace AdvertisingPlatforms.Presentation
         /// <remarks>URL: /Api/APlatforms/GetAllPlatforms</remarks>
         /// <returns>IEnumerable возвращает строковое перечисление через yield return, позволяет получать результаты в реальном времени</returns>
         [HttpGet("GetAllPlatforms")]
+        [AllowAnonymous]
         public IEnumerable<string> GetAllPlatforms()
         {
             if (_concDictionary != null && !_concDictionary.IsEmpty)
@@ -89,6 +95,7 @@ namespace AdvertisingPlatforms.Presentation
         /// <remarks>URL: /Api/APlatforms/Upload</remarks>
         /// <returns>ActionResult представляет различные коды состояния HTTP</returns>
         [HttpPost("UploadFile")]
+        [AllowAnonymous]
         [DisableRequestSizeLimit]
         [RequestFormLimits(MultipartBodyLengthLimit = 402653184, ValueLengthLimit = 134217728)] // Общий лимит на загрузку 384 Мб, лимит каждого файла 128 Мб
         public async Task<IActionResult> UploadFileAsync(IFileRepository fileRepository)
@@ -121,9 +128,9 @@ namespace AdvertisingPlatforms.Presentation
                             await fileRepository.ClearAsync();
                         }
                     }
-                    catch
+                    catch (Exception ex) // Даже при включенной глобальной обработке ошибок не убираем этот блок, на случайт того, что следующий файл будет валидным
                     {
-                        // Тут можно подключить логирование
+                        _logger.LogError("{ex.ToString()}", ex.ToString());
                     }
                 }
             }
@@ -139,6 +146,7 @@ namespace AdvertisingPlatforms.Presentation
         /// <param name="location">Параметр запроса, вида: /ru/svrd</param>
         /// <returns>IEnumerable возвращает строковое перечисление через yield return, позволяет получать результаты в реальном времени</returns>
         [HttpGet("SearchPlatforms")]
+        [AllowAnonymous]
         public IEnumerable<string> SearchPlatforms([FromQuery] string location)
         {
             if (_concDictionary != null && !_concDictionary.IsEmpty)

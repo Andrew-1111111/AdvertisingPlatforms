@@ -1,4 +1,6 @@
-﻿namespace AdvertisingPlatforms.BusinessLogic.File
+﻿using AdvertisingPlatforms.BusinessLogic.File;
+
+namespace AdvertisingPlatforms.BusinessLogic
 {
     public static class Extensions
     {
@@ -10,7 +12,7 @@
         public static IServiceCollection AddRepositories(this IServiceCollection serviceCollection)
         {
             // Добавляем File репозиторий
-            serviceCollection.AddSingleton<IFileRepository>(f => new File()); // Создаем единственный экземпляр сервиса через фабрику
+            serviceCollection.AddSingleton<IFileRepository, FileRepository>(); // Создаем единственный экземпляр сервиса
 
             return serviceCollection;
         }

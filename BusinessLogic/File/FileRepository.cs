@@ -1,6 +1,6 @@
 ﻿namespace AdvertisingPlatforms.BusinessLogic.File
 {
-    public class File : IFileRepository
+    public class FileRepository : IFileRepository
     {
         public string Name { get; set; } = string.Empty;
         public string Extension { get; set; } = string.Empty;

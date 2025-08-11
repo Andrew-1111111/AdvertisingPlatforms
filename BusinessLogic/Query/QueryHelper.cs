@@ -1,4 +1,4 @@
-﻿namespace AdvertisingPlatforms.BusinessLogic
+﻿namespace AdvertisingPlatforms.BusinessLogic.Query
 {
     public class QueryHelper
     {
