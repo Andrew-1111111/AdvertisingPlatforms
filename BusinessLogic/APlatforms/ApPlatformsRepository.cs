@@ -1,11 +1,6 @@
 ﻿using AdvertisingPlatforms.BusinessLogic.APlatforms.Interfaces;
-using Microsoft.AspNetCore.DataProtection.KeyManagement;
-using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Text;
-using System.Threading;
 
 namespace AdvertisingPlatforms.BusinessLogic.APlatforms
 {
@@ -36,7 +31,6 @@ namespace AdvertisingPlatforms.BusinessLogic.APlatforms
         /// </summary>
         /// <param name="data">Массив байт из строки в UTF-8 кодировке</param>
         /// <param name="encoding">UTF-8</param>
-        /// <param name="clearCollection">Bool флаг запроса на очистку словаря</param>
         /// <returns>Bool флаг успешности заполнения словаря</returns>
         public async Task<bool> SetPlatformsAsync(byte[] data, Encoding encoding)
         {
@@ -51,21 +45,15 @@ namespace AdvertisingPlatforms.BusinessLogic.APlatforms
         /// <summary>
         /// Получает платформы по выбранной локации
         /// </summary>
-        /// <param name="location">Локация (пример: /ru)</param>
-        /// <returns>Строка, сформированная на основе StringBuilder</returns>
-        public string GetPlatforms(string location)
+        /// <param name="location">Локация (пример: /ru/msk)</param>
+        /// <returns>IEnumerable возвращает строковое перечисление через yield return, позволяет получать результаты в реальном времени</returns>
+        public IEnumerable<string> GetPlatforms(string location)
         {
             if (_concDictionary.TryGetValue(location, out var list))
             {
-                var sb = new StringBuilder();
-
                 foreach (var line in list)
-                    sb.Append(line + Environment.NewLine);
-
-                return sb.ToString();
+                    yield return line;
             }
-
-            return string.Empty;
         }
 
         /// <summary>
@@ -82,7 +70,6 @@ namespace AdvertisingPlatforms.BusinessLogic.APlatforms
         /// Заполняет словарь из текста
         /// </summary>
         /// <param name="text">Текст, загруженный из пользовательского файла</param>
-        /// <param name="clearCollection">Bool флаг запроса на очистку словаря</param>
         /// <returns>Bool флаг успешности заполнения словаря</returns>
         private static bool SetDictionary(string text)
         {
@@ -156,10 +143,9 @@ namespace AdvertisingPlatforms.BusinessLogic.APlatforms
         }
 
         /// <summary>
-        /// Добавляет в словарь вложенные локации
+        /// Добавляет во временный словарь вложенные локации, заполняет основной ConcurrentDictionary
         /// </summary>
         /// <param name="inDict">Временный словарь</param>
-        /// <param name="clearCollection">Bool флаг запроса на очистку словаря</param>
         private static void AddNesting(Dictionary<string, List<string>> tempDict)
         {
             // 1. Производим выборку и сохранение площадок во временный словарь 

@@ -10,7 +10,7 @@ namespace AdvertisingPlatforms.BusinessLogic.APlatforms.Interfaces
 
         Task<bool> SetPlatformsAsync(byte[] data, Encoding encoding);
 
-        string GetPlatforms(string location);
+        IEnumerable<string> GetPlatforms(string location);
 
         IEnumerable<string> GetAllPlatforms();
     }

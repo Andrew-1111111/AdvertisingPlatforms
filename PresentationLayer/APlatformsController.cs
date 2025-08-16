@@ -65,28 +65,6 @@ namespace AdvertisingPlatforms.PresentationLayer
         }
 
         /// <summary>
-        /// Возврат всех рекламных площадок (без обработки, as is)
-        /// </summary>
-        /// <remarks>В ТЗ данный метод не заявлен, оставлен для удобства отладки!</remarks>
-        /// <remarks>URL: /Api/APlatforms/GetAllPlatforms</remarks>
-        /// <returns>IEnumerable возвращает строковое перечисление через yield return, позволяет получать результаты в реальном времени</returns>
-        [HttpGet("GetAllPlatforms")]
-        [AllowAnonymous]
-        public IEnumerable<string> GetAllPlatforms()
-        {
-            if (!_apRepository.IsEmpty)
-            {
-                foreach (var ap in _apRepository.GetAllPlatforms())
-                    yield return ap;
-            }
-            else
-            {
-                throw new FileNotFoundException(
-                    $"Загрузите файл с базой рекламных площадок через '/Api/{ControllerContext.ActionDescriptor.ControllerName}' и повторите запрос.");
-            }
-        }
-
-        /// <summary>
         /// Метод загрузки рекламных площадок из файла (полностью перезаписывает всю хранимую информацию)
         /// </summary>
         /// <remarks>URL: /Api/APlatforms/Upload</remarks>
@@ -130,20 +108,45 @@ namespace AdvertisingPlatforms.PresentationLayer
         }
 
         /// <summary>
+        /// Возврат всех рекламных площадок (без обработки, as is)
+        /// </summary>
+        /// <remarks>В ТЗ данный метод не заявлен, оставлен для удобства отладки!</remarks>
+        /// <remarks>URL: /Api/APlatforms/GetAllPlatforms</remarks>
+        /// <returns>IEnumerable возвращает строковое перечисление через yield return, позволяет получать результаты в реальном времени</returns>
+        [HttpGet("GetAllPlatforms")]
+        [AllowAnonymous]
+        public IEnumerable<string> GetAllPlatforms()
+        {
+            if (!_apRepository.IsEmpty)
+            {
+                foreach (var ap in _apRepository.GetAllPlatforms())
+                    yield return ap;
+            }
+            else
+            {
+                throw new FileNotFoundException(
+                    $"Загрузите файл с базой рекламных площадок через '/Api/{ControllerContext.ActionDescriptor.ControllerName}' и повторите запрос.");
+            }
+        }
+
+        /// <summary>
         /// Метод поиска списка рекламных площадок для заданной локации
         /// </summary>
         /// <remarks>URL: /Api/APlatforms/Search</remarks>
         /// <param name="location">Параметр запроса, вида: /ru/svrd</param>
-        /// <returns>Возвращает строку</returns>
+        /// <returns>IEnumerable возвращает строковое перечисление через yield return, позволяет получать результаты в реальном времени</returns>
         [HttpGet("SearchPlatforms")]
         [AllowAnonymous]
-        public string SearchPlatforms([FromQuery] string location)
+        public IEnumerable<string> SearchPlatforms([FromQuery] string location)
         {
             if (QueryHelper.LocationValidator(ref location)) // Проводим валидацию строки запроса
             {
                 if (!_apRepository.IsEmpty)
                 {
-                    return _apRepository.GetPlatforms(location);
+                    foreach (var line in _apRepository.GetPlatforms(location))
+                    {
+                        yield return line;
+                    }
                 }
                 else
                 {
