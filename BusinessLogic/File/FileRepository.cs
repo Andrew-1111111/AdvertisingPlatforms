@@ -1,10 +1,12 @@
-﻿namespace AdvertisingPlatforms.BusinessLogic.File
+﻿using AdvertisingPlatforms.BusinessLogic.File.Interfaces;
+
+namespace AdvertisingPlatforms.BusinessLogic.File
 {
     public class FileRepository : IFileRepository
     {
         public string Name { get; set; } = string.Empty;
         public string Extension { get; set; } = string.Empty;
-        public bool IsUploaded { get; set; } = false;
+        public bool IsUploaded { get; set; }
         public byte[] Data { get; set; } = [0];
 
         private const string FILE_EXTENSION = ".txt";
@@ -12,13 +14,12 @@
                                                                           // с текущим конструктором только один поток может получить доступ
 
         /// <summary>
-        /// Валидирует и устанавливает IFormFile в свойства репозитория
+        /// Проводит валидацию и устанавливает IFormFile в свойства репозитория
         /// </summary>
         /// <param name="file">IFormFile представляет файл, отправленный с помощью HttpRequest</param>
         /// <returns>Task представляет собой асинхронную операцию</returns>
         public async Task<bool> SetFileAsync(IFormFile file)
         {
-            // Валидируем 
             if (Validation(file))
             {
                 // Считываем файл из IFromFile в MemoryStream
@@ -28,12 +29,12 @@
                 // Заполняем временный буфер
                 var buffer = ms.ToArray();
 
-                if (buffer != null && buffer.Length > 0)
+                if (buffer.Length > 0)
                 {
                     // Асинхронно ожидаем получения семафора
                     await _semaphoreSlim.WaitAsync();
 
-                    // Заполняем свойсва класса
+                    // Заполняем свойства класса
                     Name = Guid.NewGuid().ToString();
                     Extension = FILE_EXTENSION;
                     Data = buffer;
@@ -54,14 +55,10 @@
         /// <returns>Bool флаг успешности валидации</returns>
         private static bool Validation(IFormFile file)
         {
-            if (file != null 
-                && file.Length > 0 
-                && !string.IsNullOrWhiteSpace(file.FileName) 
-                && Path.GetExtension(file.FileName) == FILE_EXTENSION
-                && file.FileName.IndexOfAny(Path.GetInvalidFileNameChars()) < 0)
-                return true;
-
-            return false;
+            return file.Length > 0 
+                   && !string.IsNullOrWhiteSpace(file.FileName) 
+                   && Path.GetExtension(file.FileName) == FILE_EXTENSION
+                   && file.FileName.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
         }
 
         /// <summary>

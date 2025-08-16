@@ -2,11 +2,15 @@
 
 namespace AdvertisingPlatforms.PresentationLayer.Dto
 {
-    // Класс описания возникших исключений.
+    // Структура для описания возникших исключений.
     // DTO (Data Transfer Object) - это шаблон проектирования, который используется для передачи данных между слоями приложения,
     // содержит минималистичное описание полей/свойств и практически не содержит кода.
-    public class ExDescriptionDto
+    public struct ExDescriptionDto
     {
+        public ExDescriptionDto()
+        {
+        }
+
         [JsonPropertyOrder(-3)]
         [JsonPropertyName("HTTP status code")]
         public int StatusCode { get; set; }

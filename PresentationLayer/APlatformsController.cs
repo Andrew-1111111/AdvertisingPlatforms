@@ -1,9 +1,8 @@
-﻿using AdvertisingPlatforms.BusinessLogic.Dictionary;
-using AdvertisingPlatforms.BusinessLogic.File;
+﻿using AdvertisingPlatforms.BusinessLogic.APlatforms.Interfaces;
+using AdvertisingPlatforms.BusinessLogic.File.Interfaces;
 using AdvertisingPlatforms.BusinessLogic.Query;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Concurrent;
 using System.Text;
 
 namespace AdvertisingPlatforms.PresentationLayer
@@ -12,33 +11,32 @@ namespace AdvertisingPlatforms.PresentationLayer
     [Route("Api/[controller]")]
     public class APlatformsController : ControllerBase
     {
-        private static readonly Encoding _encoding = Encoding.UTF8;
         private static string _uploadDirectory = null!;
         private static string _localIndexFile = null!;
-        private static readonly Lock _sync = new();
-        private static ConcurrentDictionary<string, List<string>> _concDictionary = null!;
+        private static readonly Encoding _encoding = Encoding.UTF8;
+        private readonly IApPlatformsRepository _apRepository = null!;
         private readonly ILogger<APlatformsController> _logger;
 
         /// <summary>
         /// Конструктор, проверяет пути и инициализирует поля
         /// </summary>
-        /// <param name="configuration">Конфигурация приложения (appsettings.json)</param>
-        public APlatformsController(IConfiguration configuration, ILogger<APlatformsController> logger)
+        /// <param name="configuration">Конфигурация приложения</param>
+        /// <param name="logger">ILogger сохраняет ошибки в контроллере</param>
+        public APlatformsController(IConfiguration configuration, ILogger<APlatformsController> logger, IApPlatformsRepository apRepository)
         {
             // Устанавливаем пути к файлам
             _uploadDirectory ??= Path.Combine(AppDomain.CurrentDomain.BaseDirectory, configuration.GetValue<string>("FileStorage")!);
             _localIndexFile ??= configuration.GetValue<string>("LocalIndexFile")!;
 
-            // Инициализируем логгер (для каждого экземпляра класса)
+            // Инициализируем logger (для каждого экземпляра класса)
             _logger = logger;
+
+            // Инициализируем ApPlatrorm репозиторий
+            _apRepository = apRepository;
 
             // Если не существует, создаем директорию для загрузки файлов 'FileStorage'
             if (!Directory.Exists(_uploadDirectory))
                 Directory.CreateDirectory(_uploadDirectory);
-
-            // Инициализируем словарь
-            lock (_sync)
-                _concDictionary ??= new ConcurrentDictionary<string, List<string>>();
         }
 
         /// <summary>
@@ -54,18 +52,16 @@ namespace AdvertisingPlatforms.PresentationLayer
             const string contentType = "text/html";
             var fullPath = Path.Combine(_uploadDirectory, _localIndexFile);
 
-            if (System.IO.File.Exists(fullPath) && new FileInfo(fullPath).Length > 0)
+            if (System.IO.File.Exists(fullPath))
             {
-                var html = await System.IO.File.ReadAllTextAsync(fullPath, _encoding);
-                return base.Content(html.Trim(), contentType, _encoding);
+                if (new FileInfo(fullPath).Length > 0)
+                {
+                    var html = await System.IO.File.ReadAllTextAsync(fullPath, _encoding);
+                    return base.Content(html.Trim(), contentType, _encoding);
+                }
+                throw new IOException($"Файл '{fullPath}' пуст!");
             }
-            else
-            {
-                var errorText = $"Файл '{fullPath}' не найден!";
-
-                _logger.LogError("{errorText}", errorText);
-                return new ContentResult() { Content = errorText, ContentType = contentType, StatusCode = StatusCodes.Status404NotFound };
-            }
+            throw new FileNotFoundException($"Файл '{fullPath}' не найден!");
         }
 
         /// <summary>
@@ -78,14 +74,15 @@ namespace AdvertisingPlatforms.PresentationLayer
         [AllowAnonymous]
         public IEnumerable<string> GetAllPlatforms()
         {
-            if (_concDictionary != null && !_concDictionary.IsEmpty)
+            if (!_apRepository.IsEmpty)
             {
-                foreach (var kpVal in _concDictionary)
-                    yield return $"{kpVal.Key}:{string.Join(",", kpVal.Value)}";
+                foreach (var ap in _apRepository.GetAllPlatforms())
+                    yield return ap;
             }
             else
             {
-                yield return "Данные не загружены. Загрузите файл с базой рекламных площадок через '/Api/APlatforms' и повторите запрос.";
+                throw new FileNotFoundException(
+                    $"Загрузите файл с базой рекламных площадок через '/Api/{ControllerContext.ActionDescriptor.ControllerName}' и повторите запрос.");
             }
         }
 
@@ -111,32 +108,25 @@ namespace AdvertisingPlatforms.PresentationLayer
                 {
                     try
                     {
-                        // Устанавливает и валидирует файл в репозитории
+                        // Устанавливает и проверяет файл в репозитории
                         if (await fileRepository.SetFileAsync(file))
                         {
-                            // Создаем временный словарь
-                            var tempDictionary = new ConcurrentDictionary<string, List<string>>();
-
-                            // Заносим данные из полученной строки (в выбранной кодировке)
-                            await Task.Run(() => success = DictionaryHelper.SetDictionary(_encoding.GetString(fileRepository.Data), ref tempDictionary));
-
-                            // Заменяем значение основного словаря на временный
-                            lock (_sync)
-                                _concDictionary = tempDictionary;
+                            // Заполняем словарь с рекламными площадками
+                            success = await _apRepository.SetPlatformsAsync(fileRepository.Data, _encoding);
 
                             // Очищаем свойства файлового репозитория
                             await fileRepository.ClearAsync();
                         }
                     }
-                    catch (Exception ex) // Даже при включенной глобальной обработке ошибок не убираем этот блок, на случайт того, что следующий файл будет валидным
+                    catch (Exception ex) // Даже при реализованной глобальной обработке ошибок не убираем этот блок, на случай того, что следующий файл будет валидным
                     {
                         _logger.LogError("{ex.ToString()}", ex.ToString());
                     }
                 }
             }
 
-            if (success) return Accepted(new { UploadStatus = "Файл успешно загружен!" });
-            else return BadRequest(new { UploadStatus = "Не удалось загрузить файл." });
+            if (success) return Accepted(new { UploadStatus = $"База рекламных площадок успешно обновлена. Общее число локаций: {_apRepository.Count}." });
+            return BadRequest(new { UploadStatus = "Не удалось загрузить файл." });
         }
 
         /// <summary>
@@ -144,27 +134,24 @@ namespace AdvertisingPlatforms.PresentationLayer
         /// </summary>
         /// <remarks>URL: /Api/APlatforms/Search</remarks>
         /// <param name="location">Параметр запроса, вида: /ru/svrd</param>
-        /// <returns>IEnumerable возвращает строковое перечисление через yield return, позволяет получать результаты в реальном времени</returns>
+        /// <returns>Возвращает строку</returns>
         [HttpGet("SearchPlatforms")]
         [AllowAnonymous]
-        public IEnumerable<string> SearchPlatforms([FromQuery] string location)
+        public string SearchPlatforms([FromQuery] string location)
         {
-            if (_concDictionary != null && !_concDictionary.IsEmpty)
+            if (QueryHelper.LocationValidator(ref location)) // Проводим валидацию строки запроса
             {
-                if (QueryHelper.Validation(location)) // Проводим валидацию строки запроса
+                if (!_apRepository.IsEmpty)
                 {
-                    foreach (var ap in DictionaryHelper.GetPlatforms(location, _concDictionary))
-                        yield return ap;
+                    return _apRepository.GetPlatforms(location);
                 }
                 else
                 {
-                    yield return "Некорректный запрос. Исправьте и повторите его вновь.";
+                    throw new FileNotFoundException(
+                        $"Загрузите файл с базой рекламных площадок через '/Api/{ControllerContext.ActionDescriptor.ControllerName}' и повторите запрос.");
                 }
             }
-            else
-            {
-                yield return "Данные не загружены. Загрузите файл с базой рекламных площадок через '/Api/APlatforms' и повторите запрос.";
-            }
+            else throw new ArgumentException("Ошибка валидации запроса. Исправьте и повторите его вновь.");
         }
     }
 }

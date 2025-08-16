@@ -1,4 +1,4 @@
-﻿namespace AdvertisingPlatforms.BusinessLogic.File
+﻿namespace AdvertisingPlatforms.BusinessLogic.File.Interfaces
 {
     public interface IFileRepository
     {
