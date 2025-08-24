@@ -1,0 +1,6 @@
+﻿@AdvertisingPlatforms_HostAddress = https://localhost:7201
+
+GET {{AdvertisingPlatforms_HostAddress}}/Api/APlatforms/
+Accept: */*
+
+###
