@@ -1,6 +1,6 @@
 ﻿using AdvertisingPlatforms.BusinessLogic.Query;
 
-namespace AdvertisingPlatforms.Test.BusinessLogic
+namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
 {
     public class Query
     {

@@ -7,7 +7,7 @@ namespace AdvertisingPlatforms.BusinessLogic.APlatforms
     /// <summary>
     /// Репозиторий, содержащий основную бизнес логику приложения
     /// </summary>
-    internal class ApPlatformsRepository : IApPlatformsRepository
+    public class ApPlatformsRepository : IApPlatformsRepository
     {
         /// <summary>
         /// Возвращает значение, указывающее, является ли объект пустым
@@ -207,7 +207,7 @@ namespace AdvertisingPlatforms.BusinessLogic.APlatforms
         /// </summary>
         /// <param name="list">Список, для форматирования и сохранения строк, изменения в нем сохраняются</param>
         /// <returns>Ссылка на список строк</returns>
-        private static List<string> CleanList(List<string> list)
+        public static List<string> CleanList(List<string> list)
         {
             for (var i = 0; i < list.Count; i++)
             {
