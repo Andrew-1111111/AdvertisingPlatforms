@@ -88,11 +88,11 @@ namespace AdvertisingPlatforms.BusinessLogic.File
         /// </summary>
         /// <param name="file">IFormFile представляет файл, отправленный с помощью HttpRequest</param>
         /// <returns>Bool флаг успешности валидации</returns>
-        private static bool Validation(IFormFile file)
+        public static bool Validation(IFormFile file)
         {
             return file.Length > 0 
                    && !string.IsNullOrWhiteSpace(file.FileName) 
-                   && Path.GetExtension(file.FileName) == FILE_EXTENSION
+                   && Path.GetExtension(file.FileName).Equals(FILE_EXTENSION, StringComparison.OrdinalIgnoreCase)
                    && file.FileName.IndexOfAny(Path.GetInvalidFileNameChars()) < 0;
         }
 
