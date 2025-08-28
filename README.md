@@ -8,7 +8,7 @@
 AdvertisingPlatforms
  - PresentationLayer - загрузка файла и получение площадок из GET запроса с локацией.
  - BusinessLogic - парсинг и обработка данных из файла.
- - FileStorage - хранение формы для загрузки файла и тестовый файл с названием TestCaseFile.txt, кодировка файла UTF-8 (без BOM).
+ - FileStorage - хранит описание тестового задания в 'TestTaskDescription.pdf', тестовый файл 'TestCaseFile.txt' (кодировка файла UTF-8 (без BOM)), форму для загрузки файла в 'Index.html'.
  - Resources - ресурсы для локализации приложения.
  
 AdvertisingPlatforms.Tests

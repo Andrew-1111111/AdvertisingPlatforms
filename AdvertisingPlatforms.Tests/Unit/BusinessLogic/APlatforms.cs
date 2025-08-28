@@ -33,7 +33,7 @@ namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
             var originalImput = input.ToList();
 
             // Act
-            var result = ApPlatformsRepository.CleanList(input);
+            ApPlatformsRepository.CleanList(input);
 
             // Assert
             Assert.NotEqual(originalImput, input);
