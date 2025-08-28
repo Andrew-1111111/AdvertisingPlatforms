@@ -12,7 +12,7 @@ namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
         }
 
         [Fact]
-        public void SetDictionary_ValidMultiLineText_ReturnsTrue()
+        public void SetDictionary_ValidMultiLineText_Return_True()
         {
             // Arrange
             var text = "Яндекс.Директ:/ru\nРевдинский рабочий:/ru/svrd/revda,/ru/svrd/pervik";
@@ -25,7 +25,7 @@ namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
         }
 
         [Fact]
-        public void SetDictionary_SingleLineText_ReturnsTrue()
+        public void SetDictionary_SingleLineText_Return_True()
         {
             // Arrange
             var text = "Яндекс.Директ:/ru";
@@ -38,7 +38,7 @@ namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
         }
 
         [Fact]
-        public void SetDictionary_EmptyText_ReturnsFalse()
+        public void SetDictionary_EmptyText_Return_False()
         {
             // Arrange
             var text = "";
@@ -51,7 +51,7 @@ namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
         }
 
         [Fact]
-        public void SetDictionary_TextWithoutColon_ReturnsFalse()
+        public void SetDictionary_TextWithoutColon_Return_False()
         {
             // Arrange
             var text = "InvalidLineWithoutColon";
@@ -64,7 +64,7 @@ namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
         }
 
         [Fact]
-        public void SetDictionary_TextWithEmptyLocations_ReturnsFalse()
+        public void SetDictionary_TextWithEmptyLocations_Return_False()
         {
             // Arrange
             var text = "Яндекс.Директ:";
@@ -77,7 +77,7 @@ namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
         }
 
         [Fact]
-        public void SetDictionary_NullText_ReturnsFalse()
+        public void SetDictionary_NullText_Return_False()
         {
             // Arrange
             string? text = null;
@@ -90,7 +90,7 @@ namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
         }
 
         [Fact]
-        public void SetDictionary_TextWithWhitespaceLines_ReturnsTrueForValidLines()
+        public void SetDictionary_TextWithWhitespaceLines_Return_True_ForValidLines()
         {
             // Arrange
             var text = "Яндекс.Директ:/ru\n   \nРевдинский рабочий:/ru/svrd";
@@ -103,7 +103,7 @@ namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
         }
 
         [Fact]
-        public void SetDictionary_OnlyWhitespaceText_ReturnsFalse()
+        public void SetDictionary_OnlyWhitespaceText_Return_False()
         {
             // Arrange
             var text = "   \n\t\n   ";
@@ -116,7 +116,7 @@ namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
         }
 
         [Fact]
-        public void SetDictionary_TextWithMultipleValidEntries_ReturnsTrue()
+        public void SetDictionary_TextWithMultipleValidEntries_Return_True()
         {
             // Arrange
             var text = @"Яндекс.Директ:/ru 
@@ -220,7 +220,7 @@ namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
         }
 
         [Fact]
-        public void SplitLines_ValidInput_ReturnsCorrectListAndSetsValue()
+        public void SplitLines_ValidInput_Return_CorrectListAndSetsValue()
         {
             // Arrange
             var singleLine = "Key: value1, value2, value3";
@@ -238,7 +238,7 @@ namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
         }
 
         [Fact]
-        public void SplitLines_WithSpacesAndTrimEntries_ReturnsTrimmedValues()
+        public void SplitLines_WithSpacesAndTrimEntries_Return_TrimmedValues()
         {
             // Arrange
             var singleLine = "  Key  :  value1  ,  value2  ,  value3  ";
@@ -274,7 +274,7 @@ namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
         }
 
         [Fact]
-        public void SplitLines_EmptyString_ReturnsEmptyList()
+        public void SplitLines_EmptyString_Return_EmptyList()
         {
             // Arrange
             var singleLine = "";
@@ -289,7 +289,7 @@ namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
         }
 
         [Fact]
-        public void SplitLines_NullString_ReturnsEmptyList()
+        public void SplitLines_NullString_Return_EmptyList()
         {
             // Arrange
             string? singleLine = null;
@@ -304,7 +304,7 @@ namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
         }
 
         [Fact]
-        public void SplitLines_OnlyKeyWithoutValues_ReturnsEmptyList()
+        public void SplitLines_OnlyKeyWithoutValues_Return_EmptyList()
         {
             // Arrange
             var singleLine = "Key:";
@@ -319,7 +319,7 @@ namespace AdvertisingPlatforms.Tests.Unit.BusinessLogic
         }
 
         [Fact]
-        public void SplitLines_SingleValue_ReturnsSingleItemList()
+        public void SplitLines_SingleValue_Return_SingleItemList()
         {
             // Arrange
             var singleLine = "Key: single_value";
