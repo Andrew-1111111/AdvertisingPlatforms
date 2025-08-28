@@ -5,7 +5,7 @@ namespace AdvertisingPlatforms.BusinessLogic.File
     /// <summary>
     /// Файловый репозиторий
     /// </summary>
-    public class FileRepository : IFileRepository
+    internal class FileRepository : IFileRepository
     {
         /// <summary>
         /// Имя файла
@@ -88,7 +88,7 @@ namespace AdvertisingPlatforms.BusinessLogic.File
         /// </summary>
         /// <param name="file">IFormFile представляет файл, отправленный с помощью HttpRequest</param>
         /// <returns>Bool флаг успешности валидации</returns>
-        public static bool Validation(IFormFile file)
+        internal static bool Validation(IFormFile file)
         {
             return file.Length > 0 
                    && !string.IsNullOrWhiteSpace(file.FileName) 

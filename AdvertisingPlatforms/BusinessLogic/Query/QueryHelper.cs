@@ -3,14 +3,14 @@
     /// <summary>
     /// Класс для валидации HTTP запросов
     /// </summary>
-    public class QueryHelper
+    internal class QueryHelper
     {
         /// <summary>
         /// Валидация строки HTTP GET запроса
         /// </summary>
         /// <param name="query">Строка GET запроса (пример: /ru/msk)</param>
         /// <returns>Bool флаг успешности прохождения валидации</returns>
-        public static bool LocationValidator(ref string query)
+        internal static bool LocationValidator(ref string query)
         {
             // Проверяем на пустоту
             if (!string.IsNullOrWhiteSpace(query)) // Не проверяем на наличие прямого слеша, потому что може быть запрос только с "location"

@@ -5,7 +5,11 @@ using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
 using System.Globalization;
+using System.Runtime.CompilerServices;
 using System.Threading.RateLimiting;
+
+// Подключаем возможность использовать методы и поля с модификатором internal для дружественной сборки (в нашем слчае для тестов)
+[assembly: InternalsVisibleTo("AdvertisingPlatforms.Tests")]
 
 // Возможность расширить (в будущем) пропускную способность ThreadPool (выставлено значение: по умолчанию)
 const int ratio = 1;

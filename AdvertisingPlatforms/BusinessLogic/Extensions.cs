@@ -15,7 +15,7 @@ namespace AdvertisingPlatforms.BusinessLogic
         /// </summary>
         /// <param name="serviceCollection">IServiceCollection определяет контракт для коллекции дескрипторов служб</param>
         /// <returns>IServiceCollection определяет контракт для коллекции дескрипторов служб</returns>
-        public static IServiceCollection AddRepositories(this IServiceCollection serviceCollection)
+        internal static IServiceCollection AddRepositories(this IServiceCollection serviceCollection)
         {
             // Добавляем репозиторий для работы с файлом
             serviceCollection.AddSingleton<IFileRepository, FileRepository>();               // Создаем единственный экземпляр сервиса

@@ -7,7 +7,7 @@ namespace AdvertisingPlatforms.BusinessLogic.APlatforms
     /// <summary>
     /// Репозиторий, содержащий основную бизнес логику приложения
     /// </summary>
-    public class ApPlatformsRepository : IApPlatformsRepository
+    internal class ApPlatformsRepository : IApPlatformsRepository
     {
         /// <summary>
         /// Возвращает значение, указывающее, является ли объект пустым
@@ -76,7 +76,7 @@ namespace AdvertisingPlatforms.BusinessLogic.APlatforms
         /// </summary>
         /// <param name="text">Текст, загруженный из пользовательского файла</param>
         /// <returns>Bool флаг успешности заполнения словаря</returns>
-        private static bool SetDictionary(string text)
+        internal static bool SetDictionary(string text)
         {
             var success = false;
 
@@ -151,7 +151,7 @@ namespace AdvertisingPlatforms.BusinessLogic.APlatforms
         /// Добавляет во временный словарь вложенные локации, заполняет основной ConcurrentDictionary
         /// </summary>
         /// <param name="tempDict">Временный словарь</param>
-        private static void AddNesting(Dictionary<string, List<string>> tempDict)
+        internal static void AddNesting(Dictionary<string, List<string>> tempDict)
         {
             // 1. Производим выборку и сохранение площадок во временный словарь 
             foreach (var selectedLocation in tempDict.Keys)
@@ -185,7 +185,7 @@ namespace AdvertisingPlatforms.BusinessLogic.APlatforms
         /// <param name="singleLine">Строка</param>
         /// <param name="value">Значение из словаря</param>
         /// <returns>Список строк (список ключей для словаря)</returns>
-        public static List<string> SplitLines(string singleLine, ref string value)
+        internal static List<string> SplitLines(string singleLine, ref string value)
         {
             try
             {
@@ -211,7 +211,7 @@ namespace AdvertisingPlatforms.BusinessLogic.APlatforms
         /// </summary>
         /// <param name="list">Список, для форматирования и сохранения строк, изменения в нем сохраняются</param>
         /// <returns>Ссылка на список строк</returns>
-        public static List<string> CleanList(List<string> list)
+        internal static List<string> CleanList(List<string> list)
         {
             for (var i = 0; i < list.Count; i++)
             {
