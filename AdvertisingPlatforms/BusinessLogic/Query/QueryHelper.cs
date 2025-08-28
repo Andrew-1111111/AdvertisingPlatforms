@@ -20,7 +20,7 @@
                 {
                     query = query.Replace("  ", " ");
                 }
-                while (query.Contains(' '));
+                while (query.Contains("  "));
 
                 // Убираем лишние пробелы и символы переноса строк
                 query = query.Trim();

@@ -23,7 +23,7 @@ AdvertisingPlatforms.Tests
 |Основные методы из ТЗ|Описание метода|
 |:-|:-|
 | https://localhost:7201/Api/en-US/APlatforms/UploadFile | метод загрузки рекламных площадок из файла |
-| https://localhost:7201/Api/en-US/APlatforms/SearchPlatforms | метод поиска списка рекламных площадок через GET запрос, формат запроса: SearchPlatforms?Location=/ru |
+| https://localhost:7201/Api/en-US/APlatforms/SearchPlatforms?Location=/ru | метод поиска списка рекламных площадок через GET запрос, формат запроса: Location=/ru/svrd/revda |
 
 |Вспомогательные методы (для удобства отладки)|Описание метода|
 |:-|:-|

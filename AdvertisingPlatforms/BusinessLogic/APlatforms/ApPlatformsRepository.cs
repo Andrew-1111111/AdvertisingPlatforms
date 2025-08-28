@@ -91,7 +91,7 @@ namespace AdvertisingPlatforms.BusinessLogic.APlatforms
                 // Если файл имеет несколько строк
                 if (text.Contains("\r\n") || text.Contains('\n'))
                 {
-                    var sourceText = text.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries);
+                    var sourceText = text.Split(["\r\n", "\n"], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
 
                     foreach (var singleLine in sourceText)
                     {
@@ -156,7 +156,7 @@ namespace AdvertisingPlatforms.BusinessLogic.APlatforms
             // 1. Производим выборку и сохранение площадок во временный словарь 
             foreach (var selectedLocation in tempDict.Keys)
             {
-                // Проходим по словарю 
+                // Проходим по словарю (основная логика работы)
                 var values = tempDict
                     .Where(kpv => selectedLocation == kpv.Key || selectedLocation.StartsWith(kpv.Key + '/'))
                     .SelectMany(kpv => kpv.Value)
@@ -185,13 +185,17 @@ namespace AdvertisingPlatforms.BusinessLogic.APlatforms
         /// <param name="singleLine">Строка</param>
         /// <param name="value">Значение из словаря</param>
         /// <returns>Список строк (список ключей для словаря)</returns>
-        private static List<string> SplitLines(string singleLine, ref string value)
+        public static List<string> SplitLines(string singleLine, ref string value)
         {
             try
             {
+                // Если в строке содержится две запятых, удаляем их
+                if (singleLine.Contains(",,") || singleLine.Contains(", ,"))
+                    singleLine = singleLine.Replace(",,", ",").Replace(", ,", ",");
+
                 var sourceLine = singleLine.Split(':', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 value = sourceLine[0].Trim();
-                var list = sourceLine[1].Split(',').ToList();
+                var list = sourceLine[1].Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).ToList();
                 return CleanList(list);
             }
             catch

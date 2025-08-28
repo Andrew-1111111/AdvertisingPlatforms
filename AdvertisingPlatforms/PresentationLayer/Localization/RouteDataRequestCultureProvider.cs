@@ -25,7 +25,8 @@ namespace AdvertisingPlatforms.PresentationLayer.Localization
             ArgumentNullException.ThrowIfNull(httpContext);
 
             string? culture, uiCulture;
-            culture = uiCulture = httpContext.Request.Path.Value?.Split('/')[IndexOfCulture]?.ToString();
+            culture = uiCulture = httpContext.Request.Path.Value?
+                .Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)[IndexOfCulture]?.ToString();
 
             if (culture == null)
                 return Task.FromResult<ProviderCultureResult?>(null);
